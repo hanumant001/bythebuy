@@ -1,0 +1,7 @@
+.heroimageOutline{
+    width: 300px !important;
+    height: 30px !important;
+    /* position:relative; */
+    display: flex;
+    align-items: center;
+}
