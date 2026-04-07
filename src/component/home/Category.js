@@ -1,26 +1,24 @@
 "use client";
+import { chipData } from '@/data/dummyData2';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material'
 import React from 'react'
 
 export const Chips = () => {
-    const handleClick = () => {
-        console.info('You clicked the Chip.');
+    const handleClick = (item) => {
+        console.info(`clicked ${item?.name}`); 
     };
+    const chipsData = chipData?.map((item, index) => {
+        return (
+            <>
+                <Chip key={item.id} label={`${item.name} ${item.icon}`} onClick={() => { handleClick(item) }} variant="outlined" />
+            </>
+        )
 
+
+    })
     return (
         <Stack direction="row" spacing={1}>
-            <Chip label="lable 1" onClick={handleClick} />
-            <Chip label="lable 2" variant="outlined" onClick={handleClick} />
-            <Chip label="lable 3" onClick={handleClick} />
-            <Chip label="lable 4" variant="outlined" onClick={handleClick} />
-            <Chip label="lable 5" onClick={handleClick} />
-            <Chip label="lable 6" variant="outlined" onClick={handleClick} />
-            <Chip label="lable 1" onClick={handleClick} />
-            <Chip label="lable 2" variant="outlined" onClick={handleClick} />
-            <Chip label="lable 3" onClick={handleClick} />
-            <Chip label="lable 4" variant="outlined" onClick={handleClick} />
-            <Chip label="lable 5" onClick={handleClick} />
-            <Chip label="lable 6" variant="outlined" onClick={handleClick} />
+            {chipsData && chipsData.length ? chipsData : <Typography>No category found</Typography>}
         </Stack>
     );
 }

@@ -4,6 +4,10 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import Navbar from "@/component/layout/Navbar";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import theme from "./providers";
+import { Provider } from "react-redux";
+import ReduxProvider from "./reduxProvider";
+// import { store } from "@/redux/store";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -25,18 +29,20 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AppRouterCacheProvider>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1">
-                {children}
-              </main>
-            </div>
+        <ReduxProvider>
+          <AppRouterCacheProvider>
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+              <div className="flex flex-col min-h-screen">
+                <Navbar />
+                <main className="flex-1">
+                  {children}
+                </main>
+              </div>
 
-          </ThemeProvider>
-        </AppRouterCacheProvider>
+            </ThemeProvider>
+          </AppRouterCacheProvider>
+        </ReduxProvider>
       </body>
     </html>
   );
