@@ -17,7 +17,12 @@ import MailIcon from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { useDispatch, useSelector } from "react-redux";
-import { debouncedSearch, setSearchDispatch, suggestionAPIData } from "@/Store/searchSlice";
+import {
+  debouncedSearch,
+  keyEnter,
+  setSearchDispatch,
+  suggestionAPIData,
+} from "@/Store/searchSlice";
 import "./Navbar.css";
 import Suggestions from "../Suggestions/suggestion";
 import useDebounce from "../Functionalities/searchHandler";
@@ -78,7 +83,7 @@ export default function Navbar() {
 
   React.useEffect(() => {
     if (!debouncedValue) return;
-    dispatch(debouncedSearch(debouncedValue))
+    dispatch(debouncedSearch(debouncedValue));
     (async () => {
       try {
         const result = await fetch(
@@ -89,7 +94,7 @@ export default function Navbar() {
         dispatch(suggestionAPIData(convertToJson));
       } catch (error) {
         console.error("Error:", error);
-        dispatch(suggestionAPIData(convertToJson));
+        dispatch(suggestionAPIData([]));
       }
     })();
   }, [debouncedValue]);
@@ -236,6 +241,7 @@ export default function Navbar() {
                 if (e.key === "Enter") {
                   router.push(`/products?SP=${e.target.value}`);
                   dispatch(suggestionAPIData([]));
+                  dispatch(keyEnter(true));
                 }
               }}
             />

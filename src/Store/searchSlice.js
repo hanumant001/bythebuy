@@ -5,7 +5,8 @@ const searchSlice = createSlice({
     initialState: {
         value :'',
         suggestionAPI:[],
-        debouncedValue :''
+        debouncedValue :'',
+        isKeyEnter :false,
     },
     reducers: {
         setSearchDispatch: (state, actions) => {
@@ -17,8 +18,11 @@ const searchSlice = createSlice({
         debouncedSearch: (state, actions) => {
             state.debouncedValue = actions.payload
         },
+        keyEnter: (state, actions) => {
+            state.isKeyEnter = actions.payload
+        },
     }
 })
 
-export const { setSearchDispatch, suggestionAPIData,debouncedSearch } = searchSlice.actions;
+export const { setSearchDispatch, suggestionAPIData,debouncedSearch,keyEnter } = searchSlice.actions;
 export default searchSlice.reducer
