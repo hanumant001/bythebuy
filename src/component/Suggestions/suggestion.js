@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Card, List, Typography } from "@mui/material";
 import "./suggestion.css";
-import { setSearchDispatch, suggestionAPIData } from "@/Store/searchSlice";
+import { isSuggestuionSelected, setSearchDispatch, suggestionAPIData } from "@/Store/searchSlice";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 
@@ -17,6 +17,7 @@ const Suggestions = ({ suggestionAPI }) => {
             className="suggestionItem"
             onClick={() => {
               dispatch(setSearchDispatch(item.title));
+              dispatch(isSuggestuionSelected(true));
               router.push(`/products?SP=${item.title}`);
               dispatch(suggestionAPIData([]));
             }}

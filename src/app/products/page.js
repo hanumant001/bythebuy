@@ -2,11 +2,13 @@
 import React, { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
 import { useSearchParams } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { productMainList } from "@/Store/searchSlice";
 
 const ProductGrid = () => {
   const searchParams = useSearchParams();
-  const searchValue = searchParams.get("SP"); // 👈 key change
-
+  const searchValue = searchParams.get("SP");
+  const dispatch = useDispatch();
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
@@ -22,6 +24,7 @@ const ProductGrid = () => {
         if (!res.ok) throw new Error("API Failed");
 
         const data = await res.json();
+        dispatch(productMainList(data.products));
         setProducts(data.products);
       } catch (err) {
         console.error(err);
@@ -33,7 +36,9 @@ const ProductGrid = () => {
   }, [searchValue]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div
+      className={`grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 ${searchValue ? "pt-10" : "p-5"} `}
+    >
       {products?.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

@@ -13,12 +13,13 @@ import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import MailIcon from "@mui/icons-material/Mail";
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { useDispatch, useSelector } from "react-redux";
 import {
   debouncedSearch,
+  isSuggestuionSelected,
   keyEnter,
   setSearchDispatch,
   suggestionAPIData,
@@ -73,7 +74,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function Navbar() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-  const { value, suggestionAPI } = useSelector((state) => state.searchValue);
+  const { value, suggestionAPI, isKeyEnter,suggestionSelected,cartData } = useSelector(
+    (state) => state.searchValue,
+  );
   const debouncedValue = useDebounce(value);
   const dispatch = useDispatch();
   const isMenuOpen = Boolean(anchorEl);
@@ -83,6 +86,7 @@ export default function Navbar() {
 
   React.useEffect(() => {
     if (!debouncedValue) return;
+    if (isKeyEnter || suggestionSelected) return;
     dispatch(debouncedSearch(debouncedValue));
     (async () => {
       try {
@@ -126,7 +130,7 @@ export default function Navbar() {
     handleMobileMenuClose();
   };
   const handleSearch = (value) => {
-    // setDebouncedRes(useDebounce(value))
+  dispatch(isSuggestuionSelected(false));
     dispatch(setSearchDispatch(value));
   };
   const handleMobileMenuOpen = (event) => {
@@ -174,8 +178,8 @@ export default function Navbar() {
     >
       <MenuItem>
         <IconButton size="large" aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="error">
-            <MailIcon />
+          <Badge badgeContent={cartData?.length} color="error">
+            <ShoppingCartIcon />
           </Badge>
         </IconButton>
         <p>Messages</p>
@@ -242,6 +246,7 @@ export default function Navbar() {
                   router.push(`/products?SP=${e.target.value}`);
                   dispatch(suggestionAPIData([]));
                   dispatch(keyEnter(true));
+                  dispatch(setSearchDispatch(""));
                 }
               }}
             />
@@ -256,8 +261,8 @@ export default function Navbar() {
               aria-label="show 4 new mails"
               color="inherit"
             >
-              <Badge badgeContent={4} color="error">
-                <MailIcon />
+              <Badge badgeContent={cartData?.length} color="error">
+                <ShoppingCartIcon  onClick={()=>router.push(`/cart`)}/>
               </Badge>
             </IconButton>
             <IconButton

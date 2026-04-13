@@ -7,7 +7,7 @@ import ProductGrid from "./products/page";
 
 export default function Home() {
   return (
-    <main className="flex items-center w-full flex-col gap-12 px-8 py-20">
+    <main className="flex items-center w-full flex-col gap-1 px-8 py-20">
      <Hero/>
      <Category/>
      <ProductGrid/>
