@@ -8,18 +8,21 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import InputBase from "@mui/material/InputBase";
 import Badge from "@mui/material/Badge";
+import Card from "@mui/material/Card";
+import CircularProgress from "@mui/material/CircularProgress";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
+import Skeleton from "@mui/material/Skeleton";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { useDispatch, useSelector } from "react-redux";
 import {
   debouncedSearch,
-  isSuggestuionSelected,
+  isSuggestionSelected,
   keyEnter,
   setSearchDispatch,
   suggestionAPIData,
@@ -74,7 +77,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function Navbar() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-  const { value, suggestionAPI, isKeyEnter,suggestionSelected,cartData } = useSelector(
+  const [isSuggestionLoading, setIsSuggestionLoading] = React.useState(false);
+  const [suggestionError, setSuggestionError] = React.useState("");
+  const { value, suggestionAPI, isKeyEnter, suggestionSelected, cartData } = useSelector(
     (state) => state.searchValue,
   );
   const debouncedValue = useDebounce(value);
@@ -85,26 +90,48 @@ export default function Navbar() {
   const router = useRouter();
 
   React.useEffect(() => {
-    if (!debouncedValue) return;
+    if (!debouncedValue) {
+      setIsSuggestionLoading(false);
+      setSuggestionError("");
+      dispatch(suggestionAPIData([]));
+      return;
+    }
     if (isKeyEnter || suggestionSelected) return;
+    const controller = new AbortController();
+
     dispatch(debouncedSearch(debouncedValue));
     (async () => {
+      setIsSuggestionLoading(true);
+      setSuggestionError("");
       try {
         const result = await fetch(
-          `https://dummyjson.com/products/search?q=${debouncedValue}`,
+          `https://dummyjson.com/products/search?q=${encodeURIComponent(
+            debouncedValue,
+          )}`,
+          { signal: controller.signal },
         );
-        if (!result.ok) throw new Error("API Failed");
+        if (!result.ok) throw new Error("Unable to load suggestions.");
         const convertToJson = await result.json();
         dispatch(suggestionAPIData(convertToJson));
       } catch (error) {
-        console.error("Error:", error);
+        if (error.name === "AbortError") return;
+
         dispatch(suggestionAPIData([]));
+        setSuggestionError(
+          error.message || "Suggestions are unavailable right now.",
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSuggestionLoading(false);
+        }
       }
     })();
-  }, [debouncedValue]);
+
+    return () => controller.abort();
+  }, [debouncedValue, dispatch, isKeyEnter, suggestionSelected]);
 
   React.useEffect(() => {
-    const handleClickOutSideSuggestion = () => {
+    const handleClickOutSideSuggestion = (event) => {
       if (!suggestionWrapperRef.current) return;
 
       if (!suggestionWrapperRef.current.contains(event.target)) {
@@ -115,7 +142,7 @@ export default function Navbar() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutSideSuggestion);
     };
-  }, []);
+  }, [dispatch]);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -130,8 +157,14 @@ export default function Navbar() {
     handleMobileMenuClose();
   };
   const handleSearch = (value) => {
-  dispatch(isSuggestuionSelected(false));
+    dispatch(isSuggestionSelected(false));
+    dispatch(keyEnter(false));
     dispatch(setSearchDispatch(value));
+    if (!value) {
+      setIsSuggestionLoading(false);
+      setSuggestionError("");
+      dispatch(suggestionAPIData([]));
+    }
   };
   const handleMobileMenuOpen = (event) => {
     setMobileMoreAnchorEl(event.currentTarget);
@@ -230,26 +263,54 @@ export default function Navbar() {
             component="div"
             sx={{ display: { xs: "none", sm: "block" } }}
           >
-            MUI
+            BY The Buy
           </Typography>
           <Search className="w-[25rem !important]" ref={suggestionWrapperRef}>
             <SearchIconWrapper>
-              <SearchIcon />
+              {isSuggestionLoading ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <SearchIcon />
+              )}
             </SearchIconWrapper>
             <StyledInputBase
-              placeholder="Search…"
+              placeholder="Search..."
               value={value}
               inputProps={{ "aria-label": "search" }}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  router.push(`/products?SP=${e.target.value}`);
+                const searchTerm = e.target.value.trim();
+
+                if (e.key === "Enter" && searchTerm) {
+                  router.push(`/products?SP=${encodeURIComponent(searchTerm)}`);
                   dispatch(suggestionAPIData([]));
                   dispatch(keyEnter(true));
                   dispatch(setSearchDispatch(""));
                 }
               }}
             />
+            {isSuggestionLoading && (
+              <Card className="mainContainerSuggestion">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <Box key={index} className="suggestionItem">
+                    <Skeleton variant="rounded" width={40} height={40} />
+                    <Box className="suggestionContent" sx={{ flex: 1 }}>
+                      <Skeleton variant="text" width="80%" />
+                      <Skeleton variant="text" width="50%" />
+                    </Box>
+                  </Box>
+                ))}
+              </Card>
+            )}
+            {!isSuggestionLoading && suggestionError && value && (
+              <Card className="mainContainerSuggestion">
+                <Box className="suggestionItem">
+                  <Typography variant="body2" color="error">
+                    {suggestionError}
+                  </Typography>
+                </Box>
+              </Card>
+            )}
             {Boolean(suggestionAPI?.products?.length) && (
               <Suggestions suggestionAPI={suggestionAPI} />
             )}
@@ -262,7 +323,7 @@ export default function Navbar() {
               color="inherit"
             >
               <Badge badgeContent={cartData?.length} color="error">
-                <ShoppingCartIcon  onClick={()=>router.push(`/cart`)}/>
+                <ShoppingCartIcon onClick={() => router.push("/cart")} />
               </Badge>
             </IconButton>
             <IconButton

@@ -10,6 +10,10 @@ const searchSlice = createSlice({
     suggestionSelected: false,
     cartData: [],
     productMainList: [],
+    filteredProducts: [],
+    selectedCategory: "",
+    checkoutItems: [],
+    orderHistory: [],
   },
   reducers: {
     setSearchDispatch: (state, actions) => {
@@ -24,7 +28,7 @@ const searchSlice = createSlice({
     keyEnter: (state, actions) => {
       state.isKeyEnter = actions.payload;
     },
-    isSuggestuionSelected: (state, actions) => {
+    isSuggestionSelected: (state, actions) => {
       state.suggestionSelected = actions.payload;
     },
     addToCart: (state, action) => {
@@ -35,8 +39,23 @@ const searchSlice = createSlice({
         (item) => item.id !== action.payload.id,
       );
     },
-    productMainList: (state, action) => {
+    setProductMainList: (state, action) => {
       state.productMainList = action.payload;
+    },
+    setFilteredProducts: (state, action) => {
+      state.filteredProducts = action.payload;
+    },
+    setSelectedCategory: (state, action) => {
+      state.selectedCategory = action.payload;
+    },
+    setCheckoutItems: (state, action) => {
+      state.checkoutItems = action.payload;
+    },
+    placeOrder: (state, action) => {
+      state.orderHistory.push(action.payload);
+      const orderedIds = new Set(action.payload.items.map((item) => item.id));
+      state.cartData = state.cartData.filter((item) => !orderedIds.has(item.id));
+      state.checkoutItems = [];
     },
   },
 });
@@ -46,9 +65,13 @@ export const {
   suggestionAPIData,
   debouncedSearch,
   keyEnter,
-  isSuggestuionSelected,
+  isSuggestionSelected,
   addToCart,
   removeFromCart,
-  productMainList,
+  setProductMainList,
+  setFilteredProducts,
+  setSelectedCategory,
+  setCheckoutItems,
+  placeOrder,
 } = searchSlice.actions;
 export default searchSlice.reducer;
